@@ -1,4 +1,9 @@
-
+/*
+* Author: Isam M. Al Jawarneh
+* state: Experimental
+* MeanVariance - streaming - SSS (Spatial Stratified Sampling) Threaded- MemoryStream
+* Date Modified : 25 March 2019
+*/
 package org.it.unibo.performance
 
 import org.apache.spark.sql.streaming.StreamingQueryListener
