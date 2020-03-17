@@ -1,0 +1,60 @@
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.common.serialization.StringDeserializer
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkConf
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.types._
+import org.apache.spark.sql.SQLImplicits
+import org.apache.spark.sql.functions.from_json
+import org.apache.spark.sql.functions._
+//import formats.Geohash
+import magellan._
+import magellan.index.ZOrderCurve
+import org.apache.spark.sql.magellan.dsl.expressions._
+import org.apache.spark.sql.Row
+//https://dzone.com/articles/basic-example-for-spark-structured-streaming-amp-k
+
+//https://github.com/davidallsopp/geohash-scala
+//import com.github.davidallsopp.geohash.GeoHash._
+
+
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.streaming.OutputMode
+import org.apache.spark.sql.types.{
+  DoubleType,
+  StringType,
+  StructField,
+  StructType
+}
+
+import org.apache.spark.sql.streaming.Trigger
+
+object Consumer extends App {
+	val spark = SparkSession
+ 	 .builder
+ 	 .appName("costModel")
+ 	 .master("local")
+ 	 .getOrCreate()
+
+	import spark.implicits._
+	
+spark.sqlContext.sql("SET spark.sql.autoBroadcastJoinThreshold = -1")
+	val schema = StructType(
+  Array(StructField("neigbourhood", StringType),
+        StructField("geohash", StringType)))
+
+
+val fileStreamDf = spark.readStream.option("header", "true").schema(schema).csv("/home/isam/Desktop/Riccardo/data/neighborhoods/")
+
+val countDs = fileStreamDf.groupBy("geohash").count()
+	
+val query1 =countDs.writeStream.format("kafka").option("topic", "test").option("kafka.bootstrap.servers", "localhost:9092").option("checkpointLocation", "/tmp/checkpoint")
+
+
+ val queryStartTime = System.currentTimeMillis()
+ query1.start().awaitTermination()
+ val queryEndTime = System.currentTimeMillis()
+ val queryExecutionTime = queryEndTime - queryStartTime
+
+
+}
