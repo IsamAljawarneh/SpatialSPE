@@ -16,17 +16,7 @@ class Sampling {
   .custom spatial-aware stratified on-the-fly sampling method.
   ............................................................*/
 
-  /**
-   * Returns a stratified sample without replacement (bernouli) based on the fraction given on each stratum.
-   * @param col column that defines strata
-   * @param fractions sampling fraction for each stratum. If a stratum is not specified, we treat
-   *                  its fraction as zero.
-   * @param seed random seed
-   * @tparam T stratum type
-   * @return a new `DataFrame` that represents the stratified sample
-   *
-   * @since 1.0.0
-   */
+ 
 
 def spatialSampleBy(neigh_geohashed_df:DataFrame, points_geohashed_df:DataFrame, samplingRatio: Double): DataFrame = {
 	val geoSeq: Seq[String] = neigh_geohashed_df.select("geohash").distinct.rdd.map(r => r(0).asInstanceOf[String]).collect()
