@@ -13,7 +13,7 @@ import org.apache.spark.sql.DataFrame
 class Sampling {
 
 /*............................................................
-  .custom spatial-aware stratified on-the-fly sampling method.
+  .custom spatial-aware stratified micro-batching-based sampling method.
   ............................................................*/
 
  
