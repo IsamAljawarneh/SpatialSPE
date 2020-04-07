@@ -188,8 +188,6 @@ println(row.getAs("geohash").asInstanceOf[String] + " , " + /*popTotal_from_samp
 
 
  private var numRecs: Long = 0L // @volatile
- private var startTime: Long = 0L //  @volatile
- private var endTime: Long = 0L //  @volatile 
  private var sumNumRowsUpdatedStateful: Long = 0L //@volatile
  var triggerExecution:Long = 0L //@volatile
 
@@ -197,7 +195,7 @@ println(row.getAs("geohash").asInstanceOf[String] + " , " + /*popTotal_from_samp
 class Listener extends StreamingQueryListener {
   import org.apache.spark.sql.streaming.StreamingQueryListener._
     override def onQueryStarted(event: QueryStartedEvent): Unit = {
-      startTime = System.currentTimeMillis
+     
 
     }
 
@@ -209,8 +207,7 @@ class Listener extends StreamingQueryListener {
 
 
     override def onQueryTerminated(event: QueryTerminatedEvent): Unit = {
-      endTime = System.currentTimeMillis
-
+     
 	println("total number of records is "  + numRecs)
 
 println("--------------statistics for batch id " + batchno + " are as follows") 
@@ -219,11 +216,7 @@ println("--------------statistics for batch id " + batchno + " are as follows")
 val YbarStr: Double = tau_hat_str/popTotal_from_sampling
 //eq 3.5 pg 79 --> V_hat_y_bar_str = V_hat_y_tau_hat_str/N_square
 	val estimated_varianceS_estimated_Mean:Double = estimated_varianceS_estimated_total/(popTotal_original*popTotal_original)
-//eq pg 79 --> SE(y_bar_str) = sqrt(V_hat_y_bar_str)
-	val SE_SSS:Double = scala.math.sqrt(estimated_varianceS_estimated_Mean)
-	//val SE_SSS_proportion:Double = scala.math.sqrt(estimated_varianceS_estimated_Mean)
 
-// eq 3.7 pg 81
 
 	println("##### estimated total [ tau_hat_str] is " + tau_hat_str)
 	println("##### estimated mean [YbarStr] is " + YbarStr)
@@ -231,7 +224,7 @@ val YbarStr: Double = tau_hat_str/popTotal_from_sampling
 	println("##### estimated_varianceS_estimated_total " + estimated_varianceS_estimated_total)
 	println("##### estimated_varianceS_estimated_Mean " + estimated_varianceS_estimated_Mean)
 	println("##### popTotal_original is " + popTotal_original)
-	println("$$$$$ SE_SSS is " + SE_SSS)
+	
 	println("streaming query las progress is " + sq.lastProgress)
 
 
@@ -271,7 +264,6 @@ val processedRowsPerSecond	= currentProgress.sources(0).processedRowsPerSecond
 
 }//end for 
 
-println("average state keys updated is "  + (sumNumRowsUpdatedStateful/(monitorProgress.length)))
 
     }//end onQueryTerminated
 
@@ -297,11 +289,7 @@ print("numRecs so far in the OnQueryProgress stage is " + numRecs)
 
 val currentMean:Double = tau_hat_str_trigger / popTotal_from_sampling_trigger
 
-currentMean_Buff.append(currentMean)
 
-val d = new Date(System.currentTimeMillis() * 1000L)
-
-println(" time " + d + " current mean is " + currentMean)
 	
 //last cycle input rows (last batch interval)
 		if(numRecs>=( Variables.MAX_OFFSET -  Variables.RECORDS_PER_BATCH_INTERVAL) && numRecs<= Variables.MAX_OFFSET)
@@ -321,25 +309,16 @@ println(" time " + d + " current mean is " + currentMean)
 
    spark.streams.addListener(listener)
 
-val metrics = new scala.collection.mutable.ListBuffer[String]()
 
 //.............starting the stream...................//
 
 
 val sq :StreamingQuery = samplingStatisticsDF.writeStream
-   	 //.format("console")
-    	 //.option("path", "/home/isam/Desktop/out/")
-	//.trigger(Trigger.Once())
 
-//args(8) example: 1000 // long miliseconds	
+
 	.trigger(Trigger.ProcessingTime(args(7).toLong))
 	.foreach(writer)
 	 .outputMode("complete")
-              //.queryName("aggregates")
-         //.trigger(ProcessingTime.create("5 seconds"))
-	 //.queryName("logs")
-   	 //.option("truncate","false")
-	
    	 .start()
 	 
 
@@ -347,7 +326,6 @@ val sq :StreamingQuery = samplingStatisticsDF.writeStream
 var minOffset = 0
 var maxOffset =  Variables.RECORDS_PER_BATCH_INTERVAL - 1
 
- private var timeOverhead_geoSeq : Long = 0L //@volatile
  val monitorProgress = new scala.collection.mutable.ListBuffer[StreamingQueryProgress]()
   new Thread(new Runnable() {
     override def run(): Unit = {
@@ -356,9 +334,6 @@ var maxOffset =  Variables.RECORDS_PER_BATCH_INTERVAL - 1
       var currentBatchId = -1L
       while (sq.isActive ) {
 
-
-	//take 100 records in sequence for each thread interval (== trigger interval)
-	//here we may take a sample instead
 val batchRecordsDF = fileStreamDf.select("*").filter(col("id").between(minOffset,maxOffset))
 
 val geoSeq: Seq[(Int,Point,Double)] = batchRecordsDF.select("id","point","Trip_distance").rdd.map(r => (r(0).asInstanceOf[Int],r(1).asInstanceOf[Point], r(2).asInstanceOf[Double])).collect()
@@ -370,9 +345,6 @@ println("batch id " + batchno + " has started")
 
 // ADDING DATA EVERY BATCH INTERVAL
  inputStream.addData(geoSeq)
-
-
-
         Thread.sleep( Variables.ARRIVAL_RATE)
 
 	minOffset = maxOffset + 1
@@ -389,9 +361,7 @@ println("batch id " + batchno + " has started")
 
 object Variables {
 val MAX_OFFSET = args(0).toInt
-  
-// Variables.RECORDS_PER_BATCH_INTERVAL should be equal to = Variables.MAX_OFFSET - MIN_OFFSET
-val RECORDS_PER_BATCH_INTERVAL = args(1).toInt
+  val RECORDS_PER_BATCH_INTERVAL = args(1).toInt
 var ARRIVAL_RATE = args(2).toInt //batch interval
 val SAMPLING_FRACTION:Double = args(3).toDouble //for example 0.2
 
