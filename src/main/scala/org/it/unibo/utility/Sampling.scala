@@ -25,8 +25,7 @@ def spatialSampleBy(neigh_geohashed_df:DataFrame, points_geohashed_df:DataFrame,
 	return samplepointDF}
 
  def spatialSRS (df:DataFrame,  fractions: Double, seed: Long ): DataFrame = {
-    //require(fractions.values.forall(p => p >= 0.0 && p <= 1.0),
-      //s"Fractions must be in [0, 1], but got $fractions.")
+
     import org.apache.spark.sql.functions.{rand, udf}
     val r = rand(seed)
     val f = udf { ( x: Double) =>
