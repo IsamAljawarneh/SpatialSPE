@@ -10,6 +10,8 @@ Author: Isam M. Al Jawarneh
 * state: Experimental
 * MeanVariance - streaming - SSS (Spatial Stratified Sampling) Threaded- MemoryStream
 * Last Modified : 23 August 2019
+* N.B. in this example we use memory stream for simplicity. in production and to compare performance with other alternatives you need to
+* use an ingestion system such as Apache Kafka
 */
 
 import java.util.Date
