@@ -13,7 +13,7 @@ import org.apache.spark.sql.DataFrame
 class Sampling {
 
 /*............................................................
-  .custom spatial-aware stratified micro-batching-based sampling method.
+  custom spatial-aware stratified micro-batching-based sampling method.
   ............................................................*/
 
  
@@ -21,17 +21,17 @@ class Sampling {
 def spatialSampleBy(neigh_geohashed_df:DataFrame, points_geohashed_df:DataFrame, samplingRatio: Double): DataFrame = {
 	val geoSeq: Seq[String] = neigh_geohashed_df.select("geohash").distinct.rdd.map(r => r(0).asInstanceOf[String]).collect()
 	val map = Map(geoSeq map { a => a -> samplingRatio }: _*)
-	val samplepointDF = points_geohashed_df.stat.sampleBy("geohash",map,7L)
+		
+	 val tossAcoin = rand(7L)
+    val getSamplingRate = udf { (geohash: Any, rnd: Double) =>
+      rnd < map.getOrElse(geohash.asInstanceOf[String], 0.0)
+    }
+val samplepointDF =  points_geohashed_df.filter(getSamplingRate1(map, 0.0)($"geohash", tossAcoin))
 	return samplepointDF}
 
- def spatialSRS (df:DataFrame,  fractions: Double, seed: Long ): DataFrame = {
-
-    import org.apache.spark.sql.functions.{rand, udf}
-    val r = rand(seed)
-    val f = udf { ( x: Double) =>
-      x < fractions
-    }
-    df.filter(f(r))
+ def getSamplingRate1(map: Map[String, Double], defaultValue: Double) = udf{
+  (geohash: String, rnd: Double) =>
+      rnd < map.getOrElse(geohash.asInstanceOf[String], 0.0)
 }
 
 }
