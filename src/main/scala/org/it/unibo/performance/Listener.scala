@@ -19,18 +19,12 @@ sq:StreamingQuery) extends StreamingQueryListener {
   @volatile private var endTime: Long = 0L
 
     override def onQueryStarted(event: QueryStartedEvent): Unit = {
-      startTime = System.currentTimeMillis
+     
 
     }
     override def onQueryTerminated(event: QueryTerminatedEvent): Unit = {
-      	endTime = System.currentTimeMillis
+      	
 
-	val totalProcessingTime1 = endTime - startTime
-	val throughput:Long = (numRecs * 1000).toLong/ totalProcessingTime1
-
-	println("total running time is "  +totalProcessingTime1)
-	println("total number of records is "  + numRecs)
-	println("throughput is " + throughput)
 
 	//println("--------------statistics for batch id " + batchno + " are as follows") 
 		val popTotal_original: Double = popTotal_from_sampling/SAMPLING_FRACTION
@@ -51,17 +45,6 @@ sq:StreamingQuery) extends StreamingQueryListener {
 	//println("queryExecutionTime is " + queryExecutionTime)
 	println("streaming query las progress is " + sq.lastProgress)
 ////////////////////////////////////////////////////////////////////////////
-println("container size is " + (Container.size - 1))
-val processingTimes = Seq[Long]()
-  for (index <- 0 until Container.size - 1) {
-    val currentTimestamp = Container(index)
-
-    val nextTimestamp =  Container(index + 1)//Instant.ofEpochMilli(Container.processingTimes(index+1))
- //println("timestamp is " + currentTimestamp)
-    val processingTimeDiffInSec = nextTimestamp - currentTimestamp//nextTimestamp.minusMillis(currentTimestamp).getEpochSecond
-//totalProcessingTime = totalProcessingTime + processingTimeDiffInSec
-
-  }
 
 
 ////////////////////////////////////////////////////////////////
